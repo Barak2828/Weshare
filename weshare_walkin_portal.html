@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>weshare • Walk‑In Portal (Dubai)</title>
+<meta name="theme-color" content="#0C0F14">
+<style>
+  :root{
+    --bg:#0B0E14; --text:#EAF2FF; --muted:#9FB0C3; --accent:#51D6E3; --gold:#FFC67E;
+    --border:rgba(255,255,255,.12); --radius:18px;
+  }
+  *{ box-sizing:border-box; }
+  html, body { height:100%; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+        font-family: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Arial; overflow:hidden; }
+  .app{ position:fixed; inset:0; display:grid; grid-template-rows: auto 1fr auto; }
+  header{ display:flex; align-items:center; justify-content:space-between; padding:10px 14px;
+          background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0)); z-index:5; }
+  .brand{ display:flex; gap:10px; align-items:center; font-weight:900; letter-spacing:.2px; }
+  .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 16px var(--accent); }
+  .btn{ padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+        background:rgba(255,255,255,.06); color:var(--text); cursor:pointer; }
+  .btn.primary{ background:rgba(81,214,227,.16); border-color:rgba(81,214,227,.5); }
+  .scene{ position:relative; overflow:hidden; }
+  .layers{ position:absolute; inset:0; perspective:900px; transform-style:preserve-3d; }
+  .layer{ position:absolute; inset:-8%; pointer-events:none; transform-style:preserve-3d; }
+  .l0{ transform: translateZ(0); } .l1{ transform: translateZ(60px); } .l2{ transform: translateZ(120px); }
+  .l3{ transform: translateZ(180px); } .l4{ transform: translateZ(260px); }
+  /* Backdrop */
+  .sky{ position:absolute; inset:0; background:
+        radial-gradient(1200px 800px at 80% 10%, rgba(81,214,227,.12), transparent 60%),
+        radial-gradient(900px 900px at 10% 90%, rgba(255,198,126,.10), transparent 60%),
+        linear-gradient(180deg, #0B0E14, #141B24 60%, #0E0F12); }
+  /* Dubai skyline silhouette */
+  .skyline{ position:absolute; left:-5%; right:-5%; bottom:-2%; height:42%;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,.5)); opacity:.9; }
+  .skyline svg rect{ fill: rgba(255,255,255,.14); }
+  /* Dunes */
+  .dunes{ position:absolute; left:-10%; right:-10%; bottom:-1%; height:30%; }
+  .dunes::before, .dunes::after{
+    content:""; position:absolute; left:0; right:0; height:100%;
+    border-top-left-radius:40% 100%; border-top-right-radius:60% 100%;
+    background: linear-gradient(180deg, rgba(255,198,126,.24), rgba(255,198,126,0));
+  }
+  .dunes::after{ bottom:18px; opacity:.6; }
+  /* Portal */
+  .portalWrap{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
+  .portal{
+    width:min(86vw, 520px); aspect-ratio: 1/1; border-radius:50%;
+    background:
+      radial-gradient(closest-side, rgba(81,214,227,.22), rgba(81,214,227,0) 60%),
+      radial-gradient(circle at 70% 34%, rgba(255,255,255,.15), transparent 60%);
+    box-shadow: 0 0 40px rgba(81,214,227,.35), inset 0 0 60px rgba(81,214,227,.18);
+    position:relative; overflow:hidden; transform: translateZ(220px);
+  }
+  .portal::before{
+    content:""; position:absolute; inset:-10%;
+    background: conic-gradient(from 0deg, rgba(81,214,227,.4), rgba(255,198,126,.35), rgba(81,214,227,.4));
+    filter: blur(30px); opacity:.25;
+  }
+  .portalInner{ position:absolute; inset:0; mask-image: radial-gradient(circle at 50% 50%, #000 62%, transparent 66%); -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 62%, transparent 66%); }
+  /* Interior "venue" */
+  .venue{ position:absolute; inset:-20%; background:
+    radial-gradient(800px 400px at 50% 40%, rgba(81,214,227,.2), rgba(0,0,0,0)),
+    radial-gradient(600px 500px at 40% 80%, rgba(255,198,126,.18), rgba(0,0,0,0)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 2px, transparent 2px 40px),
+    linear-gradient(180deg, #0A0F14, #0D1218 50%, #0A0D12);
+    transform: scale(1.2) translateZ(0);
+  }
+  .laser{
+    position:absolute; width:2px; height:120%; left:50%; top:-10%;
+    background: linear-gradient(180deg, rgba(81,214,227,0), rgba(81,214,227,.9), rgba(81,214,227,0));
+    box-shadow: 0 0 24px rgba(81,214,227,.6);
+    transform: translateX(-50%) rotate(8deg);
+    mix-blend-mode: screen; opacity:.6;
+  }
+  .floor{
+    position:absolute; left:-20%; right:-20%; bottom:-5%; height:36%;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65)),
+      conic-gradient(from 0deg at 50% 0, rgba(81,214,227,.25), rgba(255,198,126,.2), rgba(81,214,227,.25));
+    filter: blur(1px);
+    transform: rotateX(55deg) translateZ(80px);
+    transform-origin: bottom center;
+  }
+  /* UI card */
+  .hud{ position:absolute; left:12px; bottom:12px; right:12px; display:flex; gap:8px; flex-wrap:wrap; z-index:6; }
+  .card{ padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.06); backdrop-filter: blur(6px); }
+  .cta{ display:flex; gap:8px; align-items:center; }
+  .holo{ border:1px solid rgba(81,214,227,.45); box-shadow: inset 0 0 20px rgba(81,214,227,.25); }
+  .tapHint{ position:absolute; bottom:16px; left:50%; transform:translateX(-50%); font-size:.9rem; color:var(--muted); }
+  /* Bottom sheet "inside" */
+  .sheet{ position:fixed; left:0; right:0; bottom: -60%; background: #0E1218; border-radius: 16px 16px 0 0; border:1px solid var(--border);
+          box-shadow: 0 -20px 60px rgba(0,0,0,.5); transition: transform .45s cubic-bezier(.2,.8,.2,1); transform: translateY(0); }
+  .sheet.on{ transform: translateY(-60%); }
+  .sheet .grab{ width:42px; height:5px; border-radius:10px; background: rgba(255,255,255,.25); margin:10px auto; }
+  .sheet .content{ padding:12px 14px 28px; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pill{ padding:8px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.05); font-size:.92rem; }
+  .list{ display:grid; gap:10px; margin-top:10px; }
+  .item{ padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.04); display:flex; justify-content:space-between; align-items:center; }
+  .item strong{ font-weight:700; }
+  footer{ padding:10px 14px; color:var(--muted); border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><span class="dot"></span> weshare</div>
+    <div class="cta">
+      <button class="btn" id="toggleMotion">Enable tilt</button>
+      <button class="btn primary" id="ask">Ask Aziza</button>
+    </div>
+  </header>
+
+  <section class="scene" id="scene" aria-label="Walk-in portal">
+    <div class="layers" id="layers">
+      <div class="layer l0">
+        <div class="sky"></div>
+        <div class="skyline">
+          <svg viewBox="0 0 1200 300" preserveAspectRatio="none">
+            <rect x="40" y="200" width="40" height="100" />
+            <rect x="100" y="180" width="48" height="120" />
+            <rect x="180" y="150" width="36" height="150" />
+            <rect x="230" y="190" width="28" height="110" />
+            <rect x="320" y="60" width="30" height="240" />
+            <rect x="332" y="30" width="6" height="30" />
+            <rect x="334.5" y="15" width="2" height="15" />
+            <rect x="400" y="170" width="40" height="130" />
+            <rect x="460" y="190" width="30" height="110" />
+            <rect x="520" y="160" width="24" height="140" />
+            <rect x="560" y="140" width="20" height="160" />
+            <rect x="600" y="200" width="36" height="100" />
+            <rect x="660" y="180" width="48" height="120" />
+            <rect x="740" y="160" width="36" height="140" />
+            <rect x="820" y="190" width="28" height="110" />
+            <rect x="880" y="170" width="40" height="130" />
+            <rect x="940" y="200" width="30" height="100" />
+            <rect x="1000" y="210" width="26" height="90" />
+            <rect x="1060" y="190" width="28" height="110" />
+          </svg>
+        </div>
+        <div class="dunes"></div>
+      </div>
+      <div class="layer l2">
+        <div class="portalWrap"><div class="portal">
+          <div class="portalInner">
+            <div class="venue"></div>
+            <div class="laser"></div>
+            <div class="floor"></div>
+          </div>
+        </div></div>
+      </div>
+      <div class="layer l4">
+        <div class="hud">
+          <div class="card">Arrivals • DXB → Downtown</div>
+          <div class="card holo">Tonight • 20:30 skyline lounge</div>
+          <div class="card">Car • 4 min away</div>
+        </div>
+        <div class="tapHint">Tap the portal to step inside</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© <span id="year"></span> weshare — concept prototype</footer>
+</div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const layers = document.getElementById('layers');
+  const portal = document.querySelector('.portal');
+  const sheet = document.createElement('div'); sheet.className='sheet'; sheet.innerHTML = `
+    <div class="grab"></div>
+    <div class="content">
+      <div class="row">
+        <span class="pill">Table by the window</span>
+        <span class="pill">View: Burj Khalifa</span>
+        <span class="pill">Dress: Smart casual</span>
+      </div>
+      <div class="list">
+        <div class="item"><span><strong>Reserve lounge</strong> — 20:30 tonight</span><button class="btn primary">Confirm</button></div>
+        <div class="item"><span><strong>Schedule ride</strong> — 20:05 pickup</span><button class="btn">Adjust</button></div>
+        <div class="item"><span><strong>Shopping stop</strong> — Dubai Mall</span><button class="btn">Curate</button></div>
+      </div>
+    </div>`;
+  document.body.appendChild(sheet);
+
+  portal.addEventListener('click', ()=>{ sheet.classList.toggle('on'); });
+
+  function applyParallax(px, py){
+    const rx = py * -6; const ry = px * 8;
+    layers.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+
+  let dragging=false, last={x:0,y:0}, acc={x:0,y:0};
+  function down(e){ dragging=true; last.x=e.clientX; last.y=e.clientY; }
+  function move(e){
+    if(!dragging) return;
+    acc.x += (e.clientX - last.x) * 0.0025;
+    acc.y += (e.clientY - last.y) * 0.0025;
+    acc.x = Math.max(-1, Math.min(1, acc.x));
+    acc.y = Math.max(-1, Math.min(1, acc.y));
+    applyParallax(acc.x, acc.y);
+    last.x = e.clientX; last.y = e.clientY;
+  }
+  function up(){ dragging=false; }
+  document.addEventListener('pointerdown', down);
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
+
+  async function enableTilt(){
+    try{
+      if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function'){
+        const res = await DeviceOrientationEvent.requestPermission();
+        if(res !== 'granted') return;
+      }
+      window.addEventListener('deviceorientation', (e)=>{
+        const gamma = e.gamma || 0;
+        const beta  = e.beta  || 0;
+        const px = Math.max(-1, Math.min(1, gamma/30));
+        const py = Math.max(-1, Math.min(1, (beta-45)/30));
+        applyParallax(px, py);
+      });
+      document.getElementById('toggleMotion').textContent = 'Tilt on ✓';
+    }catch(err){ console.warn(err); }
+  }
+  document.getElementById('toggleMotion').addEventListener('click', enableTilt);
+
+  document.getElementById('ask').addEventListener('click', ()=>{
+    alert('Aziza: Reserve skyline lounge at 20:30, 2 guests, window view. (Stub)');
+  });
+
+  if(prefersReduced){ layers.style.transform='none'; }
+</script>
+</body>
+</html>
